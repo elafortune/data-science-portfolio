@@ -1,6 +1,3 @@
-# data-science-portfolio
-
-
 # 🎓 Data Science Portfolio – Lafortune Emerick
 
 Bienvenue sur mon portfolio de projets en Data Science. Ce dépôt a pour objectif de mettre en valeur mes compétences techniques, analytiques et pratiques développées au cours de ma formation à l'école d'ingénieur **Télécom SudParis** et de ma spécialisation en **Data Science**.
