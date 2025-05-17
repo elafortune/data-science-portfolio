@@ -14,7 +14,7 @@ Ce dossier contient les **données transformées et prêtes à être utilisées*
 ## 🧹 Origine
 
 Les fichiers ici sont générés à partir du notebook :  
-👉 [`/data_cleaning.ipynb`](../data_cleaning.ipynb)
+👉 [`/processed/data_cleaning.ipynb`](../processed/data_cleaning.ipynb)
 
 Le nettoyage inclut :
 - Suppression ou traitement des valeurs manquantes
