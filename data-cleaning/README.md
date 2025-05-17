@@ -2,8 +2,6 @@
 
 Ce projet a pour objectif de démontrer mes compétences en nettoyage de données à l'aide de Python et de la bibliothèque Pandas. Il fait partie de mon portfolio de projets en data science.
 
----
-
 ## 📌 Objectif
 
 Le but est de prendre un jeu de données brut, souvent imparfait ou incohérent, et de le rendre exploitable pour une future analyse ou modélisation. Cela inclut :
@@ -14,8 +12,6 @@ Le but est de prendre un jeu de données brut, souvent imparfait ou incohérent,
 - Le formatage cohérent des colonnes,
 - La détection d'outliers éventuels,
 - L’enrichissement éventuel du jeu de données.
-
----
 
 ## 📂 Structure du projet
 data-cleaning/
@@ -39,7 +35,7 @@ data-cleaning/
 - Python 3
 - pandas
 - numpy
-- matplotlib / seaborn (pour la visualisation exploratoire)
+- matplotlib (pour la visualisation exploratoire)
 
 ## 📊 Jeu de données
 
@@ -47,14 +43,12 @@ data-cleaning/
 
 ## ✅ Résultat
 
-Le jeu de données nettoyé est prêt pour des étapes ultérieures : analyse exploratoire, visualisation, ou modélisation avec des algorithmes de machine learning.
+Le jeu de données nettoyé, les valeurs manquantes ont été traitées ainsi que le type des colonnes, il est prêt pour des étapes ultérieures : analyse exploratoire, visualisation (dont quelques exemples ont été ajoutés à la fin du notebook), ou modélisation avec des algorithmes de machine learning.
 
 ## ✍️ Auteur
 
 Lafortune Emerick  
 Diplômé de Télécom SudParis – Spécialisation Data Science  
 [LinkedIn](https://www.linkedin.com/in/emerick-lafortune) 
-
----
 
 
