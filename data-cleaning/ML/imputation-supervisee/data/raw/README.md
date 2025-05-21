@@ -4,7 +4,7 @@ Ce dossier contient les **données brutes** du projet. Il s'agit de la version o
 
 ## Contenu
 
-- `dataset_original.csv` ou autre fichier source
+- `user_exo_2M.csv` ou autre fichier source
 - Données contenant des valeurs manquantes, notamment dans les colonnes :
   - `"yob"` (Year of Birth)
   - `"gender"` (Genre/Sexe)
