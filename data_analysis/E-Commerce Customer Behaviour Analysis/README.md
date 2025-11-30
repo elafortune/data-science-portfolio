@@ -64,7 +64,7 @@ Exemples de clusters :
 ✔️ Variables produit (retours moyens, produits les plus vendus,...)
 ✔️ Variables temporelles (Année,mois,jour de la semaine)
 
-🎯 Résultat final : Segmentation client + insights business
+Résultat final : Segmentation client + insights business
 
 Grâce à l’ensemble des analyses :
 
@@ -82,5 +82,6 @@ Grâce à l’ensemble des analyses :
 📌 Améliorations possibles
 
 -Modèle prédictif de churn (XGBoost / LightGBM)
+-Imputation des valeurs manquantes
 -Recommandation produit basée sur les profils (collaborative filtering)
 -Dashboard interactif (Dash / Streamlit)
