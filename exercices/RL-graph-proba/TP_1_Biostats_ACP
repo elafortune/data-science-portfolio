@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Oct  4 14:21:49 2024
+
+@author: elafortune
+"""
+
+import pandas as pd
+from rpy2 import robjects
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+
+from sklearn.cluster import KMeans
+
+# Charger la bibliothèque MASS dans R
+robjects.r('library(MASS)')
+
+# Charger le jeu de données crabs
+robjects.r('data(crabs)')
+
+# Extraire les données et les convertir en DataFrame pandas
+crabs_df = pd.DataFrame(robjects.r('crabs'))
+
+# Sélectionner les colonnes 4 à 8 (en Python, cela correspond aux indices 3 à 7)
+crabs_quant = crabs_df.iloc[:, 3:8]
+
+crabs_T=crabs_df.T
+crabs_T.columns = ['sp', 'sex', 'index', 'FL', 'RW', 'CL', 'CW', 'BD'  ]
+
+crabs_T['sp'] = crabs_T['sp'].apply(lambda x: 'B' if x==1 else ('O' if x==2 else x))
+crabs_T['sex'] = crabs_T['sex'].apply(lambda x: 'M' if x==2 else ('F' if x==1 else x))
+
+
+
+crabsquant=crabs_T.drop(['sp','sex','index'],axis=1)
+
+# Supposons que toutes les colonnes sont quantitatives
+features = crabsquant.columns  
+x = crabsquant[features].values  # obtenir les valeurs sous forme de tableau
+
+# Appliquer l'ACP
+pca = PCA(n_components=2)  # choisir le nombre de composantes principales
+principal_components = pca.fit_transform(x)
+
+principal_df = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+
+plt.figure(figsize=(8, 6))
+plt.scatter(principal_df['PC1'], principal_df['PC2'])
+plt.title('ACP des données crabsquant (sans standardisation)')
+plt.xlabel('Composante Principale 1')
+plt.ylabel('Composante Principale 2')
+plt.grid()
+plt.show()
+
+
+# Appliquer l'ACP sur les données standardisées
+pca = PCA()
+pca.fit(x)
+
+# Variance expliquée par chaque composante
+plt.figure(figsize=(8, 5))
+plt.plot(range(1, len(pca.explained_variance_ratio_) + 1), pca.explained_variance_ratio_, marker='o')
+plt.title('Variance expliquée par chaque composante principale')
+plt.xlabel('Nombre de composantes principales')
+plt.ylabel('Variance expliquée')
+plt.grid()
+plt.show()
+
+
+# Tracer un biplot
+plt.figure(figsize=(6, 5))
+plt.scatter(principal_df['PC1'], principal_df['PC2'], alpha=0.5)
+
+# Tracer les vecteurs des variables
+for i in range(len(features)):
+    plt.arrow(0, 0, pca.components_[0, i], pca.components_[1, i],
+              color='r', alpha=0.5, head_width=5)
+    plt.text(pca.components_[0, i], pca.components_[1, i], features[i], color='g')
+
+plt.title('Biplot des données crabsquant')
+plt.xlabel('Composante Principale 1')
+plt.ylabel('Composante Principale 2')
+# Zoom sur une zone spécifique
+plt.xlim(-2, 2)  # Ajustez ces valeurs pour définir la limite x
+plt.ylim(-2, 2)  # Ajustez ces valeurs pour définir la limite y
+plt.grid()
+plt.axis('equal')
+plt.axhline(0, color='black', lw=0.5, ls='--')
+plt.axvline(0, color='black', lw=0.5, ls='--')
+plt.show(block=False)  # Affiche le graphique sans le bloquer
+plt.ion()  # Active le mode interactif
+
+#Q2 méthode utilisée pour améliorer la qualité de représentation des différents groupes
+
+# Appliquer K-means
+kmeans = KMeans(n_clusters=5)  # Choisissez le nombre de clusters
+clusters = kmeans.fit_predict(principal_df)
+
+# Visualiser avec les clusters
+plt.figure(figsize=(10, 8))
+plt.scatter(principal_df['PC1'], principal_df['PC2'], c=clusters, cmap='viridis')
+plt.title('Biplot ACP avec Clustering K-means')
+plt.xlabel('Composante Principale 1')
+plt.ylabel('Composante Principale 2')
+plt.grid()
+plt.show()
+
+
+# Appliquer l'ACP avec plus de composantes
+pca = PCA(n_components=3)  # Par exemple, 3 composantes
+principal_components = pca.fit_transform(x)
+
+# Visualiser les premières trois composantes
+# Utilisez une visualisation 3D si nécessaire
+from mpl_toolkits.mplot3d import Axes3D
+
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(principal_components[:, 0], principal_components[:, 1], principal_components[:, 2], c=clusters, cmap='viridis')
+ax.set_title('Biplot ACP 3D')
+ax.set_xlabel('PC1')
+ax.set_ylabel('PC2')
+ax.set_zlabel('PC3')
+plt.show()
+
+
+
+# Obtenir les vecteurs des variables
+loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
+
+
+
+# Tracer le cercle des corrélations
+plt.figure(figsize=(2, 8))
+plt.axhline(0, color='grey', lw=1)
+plt.axvline(0, color='grey', lw=1)
+
+# Tracer les vecteurs
+for i in range(loadings.shape[0]):
+    plt.quiver(0, 0, loadings[i, 0], loadings[i, 1], angles='xy', scale_units='xy', scale=1)
+    plt.text(loadings[i, 0], loadings[i, 1], crabsquant.columns[i], ha='center', va='center')
+
+# Tracer le cercle
+circle = plt.Circle((0, 0), 1, color='blue', fill=False, linestyle='dotted')
+plt.gca().add_artist(circle)
+
+plt.xlim(-1.1, 1.1)
+plt.ylim(-1.1, 1.1)
+plt.title('Cercle des Corrélations')
+plt.xlabel('Composante Principale 1')
+plt.ylabel('Composante Principale 2')
+plt.grid()
+plt.gca().set_aspect('equal')
+plt.show()

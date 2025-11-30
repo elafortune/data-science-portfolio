@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Oct  6 14:21:04 2024
+
+@author: elafortune
+"""
+import pandas as pd
+import rpy2.robjects as robjects
+from rpy2.robjects import pandas2ri
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+
+from sklearn.cluster import KMeans
+
+# Active la conversion automatique entre R et pandas
+pandas2ri.activate()
+
+# Charger le fichier .Rdata
+robjects.r['load']('DonneesSNPnormalisees.RData')
+
+# Vérifie les objets chargés
+print(robjects.r.ls())
+
+# Accéder à un objet spécifique
+ton_objet = robjects.r['data']
+
+# Si c'est un DataFrame R, tu peux le convertir en DataFrame pandas
+df = pandas2ri.rpy2py(ton_objet)
+df2= pd.DataFrame(robjects.r('data'))
+
+# Sélectionner les colonnes d'indice 1 et 2 (pas l'index)
+df2_noindex = df2.iloc[1:3,:]
+df_genome=df2_noindex.T
+df_genome.columns=['type','genome']
+df_genome=df_genome.dropna(how='all')
+
+
+
+
+# Group by 'type' et utiliser 'first' ou 'sum' pour agréger les valeurs si nécessaire
+df_grouped = df_genome.groupby('type')['genome'].apply(list).reset_index()
+
+# Développer les valeurs dans plusieurs colonnes
+df_modified = df_grouped.set_index('type')['genome'].apply(pd.Series).reset_index()
+
+df_cleaned=df_modified.iloc[:,0:102]
+df_cleaned.columns = [''] * len(df_cleaned.columns)
+df_cleaned_T=df_cleaned.T
+df_cleaned_T.columns= ['CEU','GIH','LWK','MKK','TSI','YRI']
+df_cleaned_T=df_cleaned_T.iloc[1:].reset_index(drop=True)
+
+df_expanded = df_cleaned_T.apply(lambda x: x.explode()).astype(float)
+
+
+# Réaliser l'ACP
+pca = PCA(n_components=2)
+principal_components = pca.fit_transform(df_expanded)
+principal_df = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, len(pca.explained_variance_) + 1), pca.explained_variance_, marker='o')
+plt.title('Variance expliquée en fonction du nombre de composantes principales')
+plt.xlabel('Nombre de Composantes Principales')
+plt.ylabel('Valeur Propre (Variance Expliquée)')
+plt.xticks(range(1, len(pca.explained_variance_) + 1))
+plt.grid()
+plt.show()
+# Créer un DataFrame avec les composantes principales
+df_pca = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+
+# Biplot
+plt.figure(figsize=(6, 6))
+plt.scatter(df_pca['PC1'], df_pca['PC2'], color='blue')
+
+# Ajouter les vecteurs des variables
+for i in range(len(df_expanded.columns)):
+    plt.arrow(0, 0, pca.components_[0, i], pca.components_[1, i],
+              color='red', alpha=0.5, head_width=0.1, label=df_expanded.columns[i])
+
+# Ajouter les labels
+for i in range(len(df_expanded.columns)):
+    plt.text(pca.components_[0, i], pca.components_[1, i], df_expanded.columns[i], color='red')
+
+plt.title('Biplot de l\'ACP')
+plt.xlabel('Première Composante Principale (PC1)')
+plt.ylabel('Deuxième Composante Principale (PC2)')
+plt.axhline(0, color='grey', lw=0.5, ls='--')
+plt.axvline(0, color='grey', lw=0.5, ls='--')
+plt.grid()
+plt.legend(loc='best')
+plt.show()
+
+kmeans = KMeans(n_clusters=3)  # Choisissez le nombre de clusters
+clusters = kmeans.fit_predict(principal_df)
+
+# Visualiser avec les clusters
+plt.figure(figsize=(10, 8))
+plt.scatter(principal_df['PC1'], principal_df['PC2'], c=clusters, cmap='viridis')
+plt.title('Biplot ACP avec Clustering K-means')
+plt.xlabel('Composante Principale 1')
+plt.ylabel('Composante Principale 2')
+plt.grid()
+plt.show()
+
+# Appliquer l'ACP avec plus de composantes
+pca = PCA(n_components=3)  # Par exemple, 3 composantes
+principal_components = pca.fit_transform(df_expanded)
+# Visualiser les premières trois composantes
+# Utilisez une visualisation 3D si nécessaire
+from mpl_toolkits.mplot3d import Axes3D
+
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(principal_components[:, 0], principal_components[:, 1], principal_components[:, 2], c=clusters, cmap='viridis')
+ax.set_title('Biplot ACP 3D')
+ax.set_xlabel('PC1')
+ax.set_ylabel('PC2')
+ax.set_zlabel('PC3')
+plt.show()
+
+# Obtenir les vecteurs des variables
+loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
+
+
+
+# Tracer le cercle des corrélations
+plt.figure(figsize=(2, 8))
+plt.axhline(0, color='grey', lw=1)
+plt.axvline(0, color='grey', lw=1)
+
+# Tracer les vecteurs
+for i in range(loadings.shape[0]):
+    plt.quiver(0, 0, loadings[i, 0], loadings[i, 1], angles='xy', scale_units='xy', scale=0.05)
+    plt.text(loadings[i, 0], loadings[i, 1], df_expanded.columns[i], ha='center', va='center')
+
+# Tracer le cercle
+circle = plt.Circle((0, 0), 1, color='blue', fill=False, linestyle='dotted')
+plt.gca().add_artist(circle)
+
+plt.xlim(-1.1, 1.1)
+plt.ylim(-1.1, 1.1)
+plt.title('Cercle des Corrélations')
+plt.xlabel('Composante Principale 1')
+plt.ylabel('Composante Principale 2')
+plt.grid()
+plt.gca().set_aspect('equal')
+plt.show()
