@@ -4,12 +4,19 @@ Chaque ligne correspond à un article présent dans une facture.
 Variables principales utilisées :
 
 -InvoiceDate : date et heure d'achat
+
 -CustomerID : identifiant unique de client
+
 -StockCode / Description : références produit
+
 -Quantity : quantité commandée
+
 -UnitPrice
+
 -Price = Quantity × UnitPrice
+
 -Country : pays du client
+
 -InvoiceNo : identifiant facture (les annulations commencent par C)
 
 🚀 1. Analyse RFM
